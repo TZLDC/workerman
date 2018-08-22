@@ -57,19 +57,24 @@
 <script>
   var fromid = {$fromid};
   var toid = {$toid};
+  var from_head = '';
+  var to_head = '';
   var API_URL = 'http://web.workerman.com/api/chat/';
-  ws = new WebSocket("ws://127.0.0.1:8282");
+  var ws = new WebSocket("ws://127.0.0.1:8282");
+  setInterval(function(){ 
+      var online = '{"type":"online","fromid":"'+fromid+'","toid":"'+toid+'"}';
+      ws.send(online);
+  },1000);
   ws.onmessage = function(e){
       // json数据转换成js对象
       var data = eval("("+e.data+")");
       var type = data.type;
-      console.log(type)
       switch(type){
           // Events.php中返回的init类型的消息，将client_id发给后台进行uid绑定
           case 'init':
               var bild = '{"type":"bind","fromid":"'+fromid+'"}';
               ws.send(bild);
-              get_name(toid);
+              get_head(fromid,toid);
               var online = '{"type":"online","fromid":"'+fromid+'","toid":"'+toid+'"}';
               ws.send(online);
               return;
@@ -79,15 +84,104 @@
               }else{
                   $(".shop-online").text("不在线");
               }
-          default :
-              
+              return;
+          case "text":
+              if(toid==data.fromid) {
+
+                  $(".chat-content").append(' <div class="chat-text section-left flex"><span class="char-img" style="background-image: url('+to_head+')"></span> <span class="text"><i class="icon icon-sanjiao4 t-32"></i>' + replace_em(data.data) + '</span> </div>');
+
+                  $(".chat-content").scrollTop(3000);
+
+                  changeNoRead();
+              }
+          return;
+          case 'save':
+              save_message(data);
+              if(data.isread==1){
+                  $(".into-shop").text("在线");
+              }else{
+                  $(".shop-online").text("不在线");
+              }
+          return;
+          case 'unline':
+              $(".shop-online").text("不在线");
+          return;
       }
   };
-  function get_name(toid){
-    $.post(API_URL+'get_name',{'toid':toid},function(res){
-       $(".shop-titlte").text("与"+res.toname+"聊天中...");
-    })
+
+  $('.send-btn').click(function() {
+      var text = $(".send-input").val();
+      if(text==''){
+        return;
+      }
+      var message = '{"data":"'+text+'","type":"say","fromid":"'+fromid+'","toid":"'+toid+'"}';
+      ws.send(message);
+      $(".chat-content").append('<div class="chat-text section-right flex"><span class="text"><i class="icon icon-sanjiao3 t-32"></i>'+replace_em(text)+'</span> <span class="char-img" style="background-image: url('+from_head+')"></span> </div>');
+      $(".chat-content").scrollTop(3000);
+      $(".send-input").val("");
+  });
+
+  function save_message(data){
+    $.post(API_URL+'save',{'data':data},function(res){
+       
+    },'json')
   }
+
+  function get_head(fromid,toid){
+    $.post(API_URL+"get_head",{"fromid":fromid,"toid":toid},function(res){
+          from_head = res.from_head;
+          to_head = res.to_head;
+          $(".shop-titlte").text("与"+res.toname+"聊天中...");
+          $.each(res.message,function(index,content){
+            if(fromid==content.fromid){
+                     if(content.type==2){
+                         $(".chat-content").append('<div class="chat-text section-right flex"><span class="text"><i class="icon icon-sanjiao3 t-32"></i><img width="120em" height="120em" src="__ROOT__/uploads/'+content.content+'"></span> <span class="char-img" style="background-image: url('+from_head+')"></span> </div>');
+
+                     }else{
+                         $(".chat-content").append('<div class="chat-text section-right flex"><span class="text"><i class="icon icon-sanjiao3 t-32"></i>'+replace_em(content.content)+'</span> <span class="char-img" style="background-image: url('+from_head+')"></span> </div>');
+                     }
+            }else{
+                    if(content.type==2){
+
+                        $(".chat-content").append(' <div class="chat-text section-left flex"><span class="char-img" style="background-image: url('+to_head+')"></span> <span class="text"><i class="icon icon-sanjiao4 t-32"></i><img width="120em" height="120em" src="__ROOT__/uploads/'+content.content+'"></span> </div>');
+
+                    }else{
+
+                        $(".chat-content").append(' <div class="chat-text section-left flex"><span class="char-img" style="background-image: url('+to_head+')"></span> <span class="text"><i class="icon icon-sanjiao4 t-32"></i>'+replace_em(content.content)+'</span> </div>');
+                    }
+            }
+          })
+      },'json');
+  }
+
+  function changeNoRead(){
+    $.post(API_URL+"changeNoRead",{"fromid":fromid,"toid":toid},function(){
+
+    },'json')
+  }
+
+  function replace_em(str){
+
+      str = str.replace(/\</g,'&lt;');
+
+      str = str.replace(/\>/g,'&gt;');
+
+      str = str.replace(/\n/g,'<br/>');
+
+      str = str.replace(/\[em_([0-9]*)\]/g,'<img src="__STATIC__/qqFace/arclist/$1.gif" border="0" />');
+
+      return str;
+
+  }
+
+  $('.icon-toleft').click(function() {
+    window.location.href = '/index/index/lists?fromid='+fromid
+  });
+
+  $(".image_up").click(function(){
+    $("#file").click();
+  })
+  
 </script>
 </body>
 </html>

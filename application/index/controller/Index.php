@@ -12,4 +12,10 @@ class Index extends Controller
     	$this->assign('toid', $toid);
         return $this->fetch();
     }
+
+    public function lists()
+    {
+    	$this->assign('fromid',input('fromid'));
+        return $this->fetch();
+    }
 }

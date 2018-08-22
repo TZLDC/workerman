@@ -36,7 +36,7 @@ class Events
      */
     public static function onConnect($client_id)
     {
-
+        echo $client_id;
         Gateway::sendToClient($client_id,json_encode([
            'type'=>'init',
            'client_id'=>$client_id
@@ -60,12 +60,36 @@ class Events
               $fromid = $message_data['fromid'];
               Gateway::bindUid($client_id, $fromid);
               return;
+            case "say":
+              $text = nl2br(htmlspecialchars($message_data['data']));
+              $toid = $message_data['toid'];
+              $fromid = $message_data['fromid'];
+              $date=[
+                   'type'=>'text',
+                   'data'=>$text,
+                   'fromid'=>$fromid,
+                   'toid'=>$toid,
+                   'time'=>time()
+               ];
+
+               if(Gateway::isUidOnline($toid)){
+                   $date['isread']= 1;
+                   Gateway::sendToUid($toid, json_encode($date));
+               }else{
+                   $date['isread']=0;
+               }
+
+               $date['type']="save";
+               Gateway::sendToUid($fromid,json_encode($date));
+  //             Gateway::sendToAll(json_encode($date));
+               return;
             case "online":
               $toid = $message_data['toid'];
               $fromid = $message_data['fromid'];
               $status = Gateway::isUidOnline($toid);
               Gateway::sendToUid($fromid,json_encode(['type'=>"online","status"=>$status]));
               return;
+            
         }
    }
    
@@ -76,6 +100,6 @@ class Events
    public static function onClose($client_id)
    {
        // 向所有人发送 
-       GateWay::sendToAll("$client_id logout\r\n");
+       // GateWay::sendToAll(json_encode(['type'=>"unline"]));
    }
 }
