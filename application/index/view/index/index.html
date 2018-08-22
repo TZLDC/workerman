@@ -12,7 +12,7 @@
     <script src="__STATIC__/newcj/js/dist/flexible/flexible.debug.js"></script>
     <script src="__STATIC__/qqFace/js/jquery.qqFace.js"></script>
     <style>
-        .qqFace { margin-top: -180px; background: #fff; padding: 2px; border: 1px #dfe6f6 solid; }
+        .qqFace { margin-top: -180px; background: #fff; padding: 2px; border: 1px #dfe6f6 solid;}
         .qqFace table td { padding: 0px; }
         .qqFace table td img { cursor: pointer; border: 1px #fff solid; }
         .qqFace table td img:hover { border: 1px #0066cc solid; }
@@ -160,6 +160,18 @@
     },'json')
   }
 
+  $(function(){
+
+    $('.icon-emoji1').qqFace({
+
+        assign:'saytext',
+
+        path:'__STATIC__/qqFace/arclist/' //表情存放的路径
+
+    });
+
+  });
+
   function replace_em(str){
 
       str = str.replace(/\</g,'&lt;');
@@ -181,7 +193,37 @@
   $(".image_up").click(function(){
     $("#file").click();
   })
-  
+
+  $("#file").change(function(){
+
+        formdata = new FormData();
+        formdata.append('fromid',fromid);
+        formdata.append('toid',toid);
+        formdata.append('file',$("#file")[0].files[0]);
+
+        $.ajax({
+            url:API_URL+"uploadimg",
+            type:'POST',
+            cache:false,
+            data:formdata,
+            dataType:'json',
+            processData:false,
+            contentType:false,
+            success:function(data,status,xhr){
+                console.log(data);
+                if(data.status=='ok'){
+                    $(".chat-content").append('<div class="chat-text section-right flex"><span class="text"><i class="icon icon-sanjiao3 t-32"></i><img width="120em" height="120em" src="__ROOT__/uploads/'+data.img_name+'"></span> <span class="char-img" style="background-image: url('+from_head+')"></span> </div>');
+                    $(".chat-content").scrollTop(3000);
+                    var message = '{"data":"'+data.img_name+'","fromid":"'+fromid+'","toid":"'+toid+'","type":"say_img"}';
+                    $("#file").val("");
+                    ws.send(message);
+                }else{
+                    console.log(data.status);
+                }
+            }
+        });
+  })
+
 </script>
 </body>
 </html>

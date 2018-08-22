@@ -115,4 +115,46 @@ class Chat extends Controller
 
         return $info;
     }
+
+    /**
+     * 上传图片，返回图片地址
+     */
+    public function uploadimg(){
+
+        $file = $_FILES['file'];
+        $fromid = input('fromid');
+        $toid = input('toid');
+        $suffix =  strtolower(strrchr($file['name'],'.'));
+        $type = ['.jpg','.jpeg','.gif','.png'];
+        if(!in_array($suffix,$type)){
+            return ['status'=>'img type error'];
+        }
+
+        if($file['size']/1024>5120){
+            return ['status'=>'img is too large'];
+        }
+
+        $filename =  uniqid("chat_img_",false);
+        $uploadpath = ROOT_PATH.'public\\uploads\\';
+        $file_up = $uploadpath.$filename.$suffix;
+        $re = move_uploaded_file($file['tmp_name'],$file_up);
+
+        if($re){
+            $name = $filename.$suffix;
+            $data['content'] = $name;
+            $data['fromid'] = $fromid;
+            $data['toid'] = $toid;
+            $data['time'] = time();
+           // $data['isread'] = $online;
+            $data['isread'] = 0;
+            $data['type'] = 2;
+            $message_id = Db::name('communication')->insertGetId($data);
+            if($message_id){
+                return['status'=>'ok','img_name'=>$name];
+            }else{
+                return ['status'=>'false'];
+            }
+
+        }
+    }
 }
