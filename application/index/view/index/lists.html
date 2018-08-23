@@ -49,7 +49,7 @@
     var API_URL = "http://web.workerman.com/api/chat/";
     var fromid ={$fromid};
 
-     ws =  new WebSocket("ws://127.0.0.1:8282");
+     ws =  new WebSocket("ws://192.168.0.184:8282");
 
     ws.onmessage=function(e){
         var message = eval("("+ e.data+")");

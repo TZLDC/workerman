@@ -60,7 +60,7 @@
   var from_head = '';
   var to_head = '';
   var API_URL = 'http://web.workerman.com/api/chat/';
-  var ws = new WebSocket("ws://127.0.0.1:8282");
+  var ws = new WebSocket("ws://192.168.0.184:8282");
   setInterval(function(){ 
       var online = '{"type":"online","fromid":"'+fromid+'","toid":"'+toid+'"}';
       ws.send(online);
