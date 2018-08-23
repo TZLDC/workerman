@@ -135,7 +135,7 @@ class Chat extends Controller
         }
 
         $filename =  uniqid("chat_img_",false);
-        $uploadpath = ROOT_PATH.'public\\uploads\\';
+        $uploadpath = ROOT_PATH.'public/uploads/';
         $file_up = $uploadpath.$filename.$suffix;
         $re = move_uploaded_file($file['tmp_name'],$file_up);
 
