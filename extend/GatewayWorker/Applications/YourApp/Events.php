@@ -36,10 +36,10 @@ class Events
      */
     public static function onConnect($client_id)
     {
-        // 向当前client_id发送数据 
-        Gateway::sendToClient($client_id, "Hello $client_id\r\n");
-        // 向所有人发送
-        Gateway::sendToAll("$client_id login\r\n");
+        Gateway::sendToClient($client_id,json_encode([
+           'type'=>'init',
+           'client_id'=>$client_id
+        ]));
     }
     
    /**
@@ -50,7 +50,46 @@ class Events
    public static function onMessage($client_id, $message)
    {
         // 向所有人发送 
-        Gateway::sendToAll("$client_id said $message\r\n");
+        $message_data = json_decode($message,true);
+        if(!$message_data){
+            return;
+        }
+        switch ($message_data['type']) {
+            case "bind":
+              $fromid = $message_data['fromid'];
+              Gateway::bindUid($client_id, $fromid);
+              return;
+            case "say":
+              $text = nl2br(htmlspecialchars($message_data['data']));
+              $toid = $message_data['toid'];
+              $fromid = $message_data['fromid'];
+              $date=[
+                   'type'=>'text',
+                   'data'=>$text,
+                   'fromid'=>$fromid,
+                   'toid'=>$toid,
+                   'time'=>time()
+               ];
+
+               if(Gateway::isUidOnline($toid)){
+                   $date['isread']= 1;
+                   Gateway::sendToUid($toid, json_encode($date));
+               }else{
+                   $date['isread']=0;
+               }
+
+               $date['type']="save";
+               Gateway::sendToUid($fromid,json_encode($date));
+  //             Gateway::sendToAll(json_encode($date));
+               return;
+            case "online":
+              $toid = $message_data['toid'];
+              $fromid = $message_data['fromid'];
+              $status = Gateway::isUidOnline($toid);
+              Gateway::sendToUid($fromid,json_encode(['type'=>"online","status"=>$status]));
+              return;
+            
+        }
    }
    
    /**
@@ -60,6 +99,6 @@ class Events
    public static function onClose($client_id)
    {
        // 向所有人发送 
-       GateWay::sendToAll("$client_id logout\r\n");
+       //GateWay::sendToAll("$client_id logout\r\n");
    }
 }
