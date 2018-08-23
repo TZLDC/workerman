@@ -104,6 +104,13 @@
                   $(".shop-online").text("不在线");
               }
           return;
+          case "say_img":
+              $(".chat-content").append(' <div class="chat-text section-left flex"><span class="char-img" style="background-image: url('+to_head+')"></span> <span class="text"><i class="icon icon-sanjiao4 t-32"></i><img width="120em" height="120em" src="__ROOT__/uploads/'+message.img_name+'"></span> </div>');
+
+              $(".chat-content").scrollTop(3000);
+
+              changeNoRead();
+          return;
           case 'unline':
               $(".shop-online").text("不在线");
           return;

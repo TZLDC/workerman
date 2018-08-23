@@ -83,6 +83,18 @@ class Events
                Gateway::sendToUid($fromid,json_encode($date));
   //             Gateway::sendToAll(json_encode($date));
                return;
+            case "say_img":
+               $toid = $message_data['toid'];
+               $fromid =$message_data['fromid'];
+               $img_name = $message_data['data'];
+               $date=[
+                   'type'=>'say_img',
+                   'fromid'=>$fromid,
+                   'toid'=>$toid,
+                   'img_name'=>$img_name
+               ];
+               Gateway::sendToUid($toid,json_encode($date));
+               return;
             case "online":
               $toid = $message_data['toid'];
               $fromid = $message_data['fromid'];
